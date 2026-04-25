@@ -165,6 +165,17 @@ def index():
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
 
-@app.route("/check-proxy")
-def check_proxy():
-    return f"Proxy set to: '{PROXY_URL}'"
+import urllib.request
+
+@app.route("/check-ip")
+def check_ip():
+    try:
+        proxy_handler = urllib.request.ProxyHandler({
+            'http': PROXY_URL,
+            'https': PROXY_URL
+        })
+        opener = urllib.request.build_opener(proxy_handler)
+        ip = opener.open("http://ifconfig.me").read().decode().strip()
+        return f"Outgoing IP via proxy: {ip}"
+    except Exception as e:
+        return f"Proxy failed: {str(e)}"
