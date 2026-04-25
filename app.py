@@ -156,3 +156,9 @@ def index():
 # -------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+    
+@app.route("/check-cookie")
+def check_cookie():
+    exists = os.path.exists(COOKIE_PATH)
+    size = os.path.getsize(COOKIE_PATH) if exists else 0
+    return f"Cookie file exists: {exists} | Size: {size} bytes | Path: {COOKIE_PATH}"
