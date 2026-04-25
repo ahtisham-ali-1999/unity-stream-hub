@@ -17,6 +17,11 @@ os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 COOKIE_PATH = os.path.join(os.path.dirname(__file__), "cookie.txt")
 
 # -------------------------
+# PROXY URL (from Render environment variable)
+# -------------------------
+PROXY_URL = os.environ.get("PROXY_URL", "")
+
+# -------------------------
 # FILE NAME SANITIZER
 # -------------------------
 def safe_filename(name):
@@ -56,6 +61,7 @@ def index():
 
             ydl_opts = {
                 "cookiefile": COOKIE_PATH,
+                "proxy": PROXY_URL,
                 "quiet": True,
                 "noplaylist": True
             }
@@ -93,6 +99,7 @@ def index():
 
             ydl_opts = {
                 "cookiefile": COOKIE_PATH,
+                "proxy": PROXY_URL,
                 "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
                 "format": f"{format_id}+bestaudio/best",
                 "noplaylist": True,
@@ -119,6 +126,7 @@ def index():
 
             ydl_opts = {
                 "cookiefile": COOKIE_PATH,
+                "proxy": PROXY_URL,
                 "format": "bestaudio/best",
                 "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
                 "noplaylist": True,
@@ -156,9 +164,3 @@ def index():
 # -------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-    
-@app.route("/check-cookie")
-def check_cookie():
-    exists = os.path.exists(COOKIE_PATH)
-    size = os.path.getsize(COOKIE_PATH) if exists else 0
-    return f"Cookie file exists: {exists} | Size: {size} bytes | Path: {COOKIE_PATH}"
