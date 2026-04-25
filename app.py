@@ -114,7 +114,7 @@ def index():
             url = request.form.get("url")
 
             ydl_opts = {
-                'cookiefile': 'cookies.txt',
+                'cookiefile': 'cookie.txt',
                 "format": "bestaudio/best",
                 "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
                 "ffmpeg_location": r"C:\ffmpeg\bin",
