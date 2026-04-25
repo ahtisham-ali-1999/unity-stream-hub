@@ -12,12 +12,12 @@ DOWNLOAD_FOLDER = os.path.join(os.getcwd(), "downloads")
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 # -------------------------
-# COOKIE PATH (FIXED FOR RENDER)
+# COOKIE PATH
 # -------------------------
 COOKIE_PATH = os.path.join(os.path.dirname(__file__), "cookie.txt")
 
 # -------------------------
-# CLEAN FILE NAME SANITIZER
+# FILE NAME SANITIZER
 # -------------------------
 def safe_filename(name):
     return re.sub(r'[\\/*?:"<>|：｜]', "", name)
@@ -55,6 +55,7 @@ def index():
             seen = set()
 
             ydl_opts = {
+                "cookiefile": COOKIE_PATH,
                 "quiet": True,
                 "noplaylist": True
             }
@@ -91,6 +92,7 @@ def index():
             format_id = request.form.get("format")
 
             ydl_opts = {
+                "cookiefile": COOKIE_PATH,
                 "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
                 "format": f"{format_id}+bestaudio/best",
                 "noplaylist": True,
@@ -100,17 +102,18 @@ def index():
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
-
                 filepath = ydl.prepare_filename(info)
                 filepath = os.path.splitext(filepath)[0] + ".mp4"
 
             if not os.path.exists(filepath):
                 return "Download failed: file not found"
 
-            return send_file(filepath, as_attachment=True)
+            response = send_file(filepath, as_attachment=True)
+            response.set_cookie('download_ready', '1')
+            return response
 
         # -------------------------
-        # MP3 DOWNLOAD (FIXED COOKIES)
+        # MP3 DOWNLOAD
         # -------------------------
         if "mp3" in request.form:
 
@@ -129,14 +132,15 @@ def index():
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
-
                 filepath = ydl.prepare_filename(info)
                 filepath = os.path.splitext(filepath)[0] + ".mp3"
 
             if not os.path.exists(filepath):
                 return "MP3 conversion failed"
 
-            return send_file(filepath, as_attachment=True)
+            response = send_file(filepath, as_attachment=True)
+            response.set_cookie('download_ready', '1')
+            return response
 
     return render_template(
         "index.html",
