@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unity StreamGrab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="noise"></div>
+
+    <!-- HEADER -->
+    <header class="header">
+        <a href="/" class="logo">
+            <span class="logo-icon">▶</span>
+            Unity StreamGrab
+        </a>
+        <div class="header-badge">Free Tool</div>
+    </header>
+
+    <main class="container">
+        <div class="card">
+
+            <!-- Title -->
+            <div class="card-header">
+                <h1>Grab your video</h1>
+                <p class="card-sub">Paste a link below to get started</p>
+            </div>
+
+            <!-- URL FETCH FORM -->
+            <form method="POST" class="url-form">
+                <div class="input-group">
+                    <div class="input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    </div>
+                    <input
+                        type="text"
+                        name="url"
+                        placeholder="https://youtube.com/watch?v=..."
+                        value="{{ url }}"
+                        required
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                </div>
+                <button type="submit" name="get_formats" class="btn-fetch">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    Fetch Video
+                </button>
+            </form>
+
+            <!-- VIDEO PREVIEW -->
+            {% if thumbnail %}
+            <div class="preview-section">
+                <div class="preview-divider">
+                    <span>Video Found</span>
+                </div>
+                <div class="preview-card">
+                    <img src="{{ thumbnail }}" class="thumb" alt="Video thumbnail">
+                    <div class="preview-info">
+                        <div class="preview-label">Title</div>
+                        <p class="preview-title">{{ title }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- DOWNLOAD OPTIONS -->
+            {% if formats %}
+            <div class="download-section">
+                <div class="preview-divider">
+                    <span>Download Options</span>
+                </div>
+
+                <form method="POST" onsubmit="showLoader()">
+                    <input type="hidden" name="url" value="{{ url }}">
+
+                    <div class="select-wrapper">
+                        <svg class="select-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <select name="format">
+                            {% for f in formats %}
+                                <option value="{{ f.format_id }}">{{ f.label }} — MP4</option>
+                            {% endfor %}
+                        </select>
+                        <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn-video" type="submit" name="download">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="2" width="20" height="20" rx="3"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+                            Download Video
+                        </button>
+                        <button class="btn-mp3" type="submit" name="mp3">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                            Download MP3
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- HOW IT WORKS -->
+        <div class="steps-section">
+            <p class="steps-title">How it works</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">01</div>
+                    <div class="step-text">Open the Video, click on share button and copy the URL</div>
+                </div>
+                <div class="step">
+                    <div class="step-num">02</div>
+                    <div class="step-text">Paste your video URL</div>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step">
+                    <div class="step-num">02</div>
+                    <div class="step-text">Pick quality & format</div>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step">
+                    <div class="step-num">03</div>
+                    <div class="step-text">Download instantly</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- LOADER MODAL -->
+    <div id="loaderModal" class="modal">
+        <div class="loader-box">
+            <div class="loader-ring">
+                <div class="spinner"></div>
+                <div class="spinner-inner"></div>
+            </div>
+            <p class="loader-title">Processing</p>
+            <p class="loader-sub">Fetching & converting your file…</p>
+            <div class="loader-bar">
+                <div class="loader-bar-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showLoader() {
+            document.getElementById("loaderModal").style.display = "flex";
+
+            // Poll every 500ms for the 'download_ready' cookie Flask sets on send_file
+            const timer = setInterval(() => {
+                if (document.cookie.split(';').some(c => c.trim().startsWith('download_ready='))) {
+                    // Clear the cookie and hide the modal
+                    document.cookie = 'download_ready=; Max-Age=0; path=/';
+                    document.getElementById("loaderModal").style.display = "none";
+                    clearInterval(timer);
+                }
+            }, 500);
+
+            // Safety fallback: hide after 60s no matter what
+            setTimeout(() => {
+                clearInterval(timer);
+                document.getElementById("loaderModal").style.display = "none";
+            }, 60000);
+        }
+
+        // Paste from clipboard helper
+        document.querySelector('input[name="url"]').addEventListener('paste', function() {
+            setTimeout(() => {
+                if (this.value.trim()) {
+                    this.closest('form').querySelector('button').classList.add('ready');
+                }
+            }, 50);
+        });
+    </script>
+
+</body>
+</html>
