@@ -5,9 +5,16 @@ import re
 
 app = Flask(__name__)
 
+# -------------------------
+# DOWNLOAD FOLDER
+# -------------------------
 DOWNLOAD_FOLDER = os.path.join(os.getcwd(), "downloads")
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
+# -------------------------
+# COOKIE PATH (FIXED FOR RENDER)
+# -------------------------
+COOKIE_PATH = os.path.join(os.path.dirname(__file__), "cookie.txt")
 
 # -------------------------
 # CLEAN FILE NAME SANITIZER
@@ -40,7 +47,7 @@ def index():
         url = request.form.get("url")
 
         # -------------------------
-        # FETCH INFO
+        # FETCH VIDEO INFO
         # -------------------------
         if "get_formats" in request.form:
 
@@ -82,12 +89,10 @@ def index():
         if "download" in request.form:
 
             format_id = request.form.get("format")
-            url = request.form.get("url")
 
             ydl_opts = {
                 "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
                 "format": f"{format_id}+bestaudio/best",
-                "ffmpeg_location": r"C:\ffmpeg\bin",
                 "noplaylist": True,
                 "quiet": True,
                 "merge_output_format": "mp4"
@@ -102,22 +107,17 @@ def index():
             if not os.path.exists(filepath):
                 return "Download failed: file not found"
 
-            response = send_file(filepath, as_attachment=True)
-            response.set_cookie('download_ready', '1')
-            return response
+            return send_file(filepath, as_attachment=True)
 
         # -------------------------
-        # MP3 DOWNLOAD
+        # MP3 DOWNLOAD (FIXED COOKIES)
         # -------------------------
         if "mp3" in request.form:
 
-            url = request.form.get("url")
-
             ydl_opts = {
-                'cookiefile': 'cookie.txt',
+                "cookiefile": COOKIE_PATH,
                 "format": "bestaudio/best",
                 "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
-                "ffmpeg_location": r"C:\ffmpeg\bin",
                 "noplaylist": True,
                 "quiet": True,
                 "postprocessors": [{
@@ -136,9 +136,7 @@ def index():
             if not os.path.exists(filepath):
                 return "MP3 conversion failed"
 
-            response = send_file(filepath, as_attachment=True)
-            response.set_cookie('download_ready', '1')
-            return response
+            return send_file(filepath, as_attachment=True)
 
     return render_template(
         "index.html",
@@ -149,5 +147,8 @@ def index():
     )
 
 
+# -------------------------
+# RUN APP
+# -------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
